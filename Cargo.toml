@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+bootloader = "0.9"
 
 # 使用 `cargo build` 编译时需要的配置
 [profile.dev]
