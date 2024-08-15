@@ -57,6 +57,10 @@ pub struct Writer {
 }
 
 impl Writer {
+    pub fn get_screen_char(&self, col: usize) -> char {
+        self.buffer.chars[BUFFER_HEIGHT - 2][col].read().ascii_character as char
+    }
+
     pub fn write_string(&mut self, s: &str) {
         for byte in s.bytes() {
             match byte {
@@ -141,4 +145,25 @@ macro_rules! println {
 pub fn _print(args: fmt::Arguments) {
     use core::fmt::Write;
     WRITER.lock().write_fmt(args).unwrap();
+}
+
+#[test_case]
+fn test_println_simple() {
+    println!("test_println_simple output");
+}
+
+#[test_case]
+fn test_println_many() {
+    for _ in 0..200 {
+        println!("test_println_many");
+    }
+}
+
+#[test_case]
+fn test_println_output() {
+    let s = "some test string that fits on a single line";
+    println!("{}", s);
+    for (i, c) in s.chars().enumerate() {
+        assert_eq!(WRITER.lock().get_screen_char(i), c);
+    }
 }
