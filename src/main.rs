@@ -12,30 +12,42 @@ pub extern "C" fn _start() -> ! {
     println!("Hello World{}", "!");
 
     rust_os::init();
+
+    // 调试中断
     // x86_64::instructions::interrupts::int3();
 
+    // page fault
     // unsafe {
     //     *(0xdeadbeef as *mut u8) = 42;
     // };
 
-    #[allow(unconditional_recursion)]
-    fn stack_overflow() {
-        stack_overflow();
-    }
-    stack_overflow();
+    // stack overflow
+    // #[allow(unconditional_recursion)]
+    // fn stack_overflow() {
+    //     stack_overflow();
+    // }
+    // stack_overflow();
+
+    // 死锁
+    // loop {
+    //     use rust_os::print;
+
+    //     for _ in 0..10000 {}
+    //     print!("-");
+    // }
 
     #[cfg(test)]
     test_main();
 
     println!("It did not crash");
-    loop {}
+    rust_os::hlt_loop();
 }
 
 #[cfg(not(test))]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     println!("{}", info);
-    loop {}
+    rust_os::hlt_loop();
 }
 
 #[cfg(test)]
