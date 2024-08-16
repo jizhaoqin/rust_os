@@ -58,7 +58,9 @@ pub struct Writer {
 
 impl Writer {
     pub fn get_screen_char(&self, col: usize) -> char {
-        self.buffer.chars[BUFFER_HEIGHT - 2][col].read().ascii_character as char
+        self.buffer.chars[BUFFER_HEIGHT - 2][col]
+            .read()
+            .ascii_character as char
     }
 
     pub fn write_string(&mut self, s: &str) {
