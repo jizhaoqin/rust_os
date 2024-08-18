@@ -13,7 +13,21 @@ pub extern "C" fn _start() -> ! {
     println!("Hello World{}", "!");
 
     rust_os::init();
-    x86_64::instructions::interrupts::int3();
+
+    // 调试中断`int3`指令
+    // x86_64::instructions::interrupts::int3();
+
+    // 触发`page fault`
+    // unsafe {
+    //     *(0xdeadbeef as *mut u8) = 42;
+    // }
+
+    // 触发栈溢出
+    #[allow(unconditional_recursion)]
+    fn stack_overflow() {
+        stack_overflow();
+    }
+    stack_overflow();
 
     #[cfg(test)]
     test_main();
