@@ -7,15 +7,18 @@
 use core::panic::PanicInfo;
 use rust_os::println;
 
-#[no_mangle] // 不重整函数名
+#[no_mangle]
 pub extern "C" fn _start() -> ! {
     // 链接器会寻找一个默认名为 `_start` 的函数，所以这个函数就是入口点
     println!("Hello World{}", "!");
-    println!("Hello again!");
+
+    rust_os::init();
+    x86_64::instructions::interrupts::int3();
 
     #[cfg(test)]
     test_main();
 
+    println!("It dit not crash!");
     loop {}
 }
 
