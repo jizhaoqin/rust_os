@@ -23,11 +23,18 @@ pub extern "C" fn _start() -> ! {
     // }
 
     // 触发栈溢出
-    #[allow(unconditional_recursion)]
-    fn stack_overflow() {
-        stack_overflow();
-    }
-    stack_overflow();
+    // #[allow(unconditional_recursion)]
+    // fn stack_overflow() {
+    //     stack_overflow();
+    // }
+    // stack_overflow();
+
+    // 触发死锁dead lock
+    // loop {
+    //     use rust_os::print;
+    //     print!("-");
+    //     for _ in 0..10000 {}
+    // }
 
     #[cfg(test)]
     test_main();

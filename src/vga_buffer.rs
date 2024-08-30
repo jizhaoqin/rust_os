@@ -58,7 +58,9 @@ pub struct Writer {
 
 impl Writer {
     pub fn get_screen_char(&self, col: usize) -> char {
-        self.buffer.chars[BUFFER_HEIGHT - 2][col].read().ascii_character as char
+        self.buffer.chars[BUFFER_HEIGHT - 2][col]
+            .read()
+            .ascii_character as char
     }
 
     pub fn write_string(&mut self, s: &str) {
@@ -144,7 +146,11 @@ macro_rules! println {
 #[doc(hidden)]
 pub fn _print(args: fmt::Arguments) {
     use core::fmt::Write;
-    WRITER.lock().write_fmt(args).unwrap();
+    use x86_64::instructions::interrupts;
+
+    interrupts::without_interrupts(|| {
+        WRITER.lock().write_fmt(args).unwrap();
+    });
 }
 
 #[test_case]
@@ -161,9 +167,17 @@ fn test_println_many() {
 
 #[test_case]
 fn test_println_output() {
-    let s = "some test string that fits on a single line";
-    println!("{}", s);
-    for (i, c) in s.chars().enumerate() {
-        assert_eq!(WRITER.lock().get_screen_char(i), c);
-    }
+    use core::fmt::Write;
+    use x86_64::instructions::interrupts;
+
+    let s = "Some test string that fits on a single line";
+    interrupts::without_interrupts(|| {
+        let mut writer = WRITER.lock();
+        writeln!(writer, "\n{}", s).expect("writeln failed");
+        for (i, c) in s.chars().enumerate() {
+            // assert_eq!(WRITER.lock().get_screen_char(i), c);
+            let screen_char = writer.buffer.chars[BUFFER_HEIGHT - 2][i].read();
+            assert_eq!(char::from(screen_char.ascii_character), c);
+        }
+    });
 }
