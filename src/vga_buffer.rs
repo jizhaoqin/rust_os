@@ -175,9 +175,7 @@ fn test_println_output() {
         let mut writer = WRITER.lock();
         writeln!(writer, "\n{}", s).expect("writeln failed");
         for (i, c) in s.chars().enumerate() {
-            // assert_eq!(WRITER.lock().get_screen_char(i), c);
-            let screen_char = writer.buffer.chars[BUFFER_HEIGHT - 2][i].read();
-            assert_eq!(char::from(screen_char.ascii_character), c);
+            assert_eq!(writer.get_screen_char(i), c);
         }
     });
 }
