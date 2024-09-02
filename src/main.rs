@@ -36,6 +36,29 @@ pub extern "C" fn _start() -> ! {
     //     print!("-");
     // }
 
+    // page fault 2
+    // let ptr = 0xdeadbeaf as *mut u8;
+    let ptr = 0x20426c as *mut u8;
+    // read from a code page
+    unsafe {
+        let _x = *ptr;
+    }
+    println!("read worked");
+
+    // write to a code page
+    // unsafe {
+    //     *ptr = 42;
+    // }
+    // println!("write worked");
+
+    use x86_64::registers::control::Cr3;
+
+    let (level_4_page_table, _) = Cr3::read();
+    println!(
+        "Level 4 page table at: {:?}",
+        level_4_page_table.start_address()
+    );
+
     #[cfg(test)]
     test_main();
 
