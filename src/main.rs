@@ -36,6 +36,35 @@ pub extern "C" fn _start() -> ! {
     //     for _ in 0..10000 {}
     // }
 
+    // Page Fault 1: 触发内存越界访问
+    // let ptr = 0xdeadbeaf as *mut u8;
+    // unsafe {
+    //     // 写入失败
+    //     // *ptr = 42;
+    //     // 读取失败
+    //     // let _x = *ptr;
+    //     // println!("read worked");
+    // }
+
+    // Page Fault 2: 非法写入
+    // let ptr = 0x20426c as *mut u8;
+    // unsafe {
+    //     // 读取成功
+    //     let _x = *ptr;
+    //     println!("read worked");
+    //     // 写入失败
+    //     *ptr = 42;
+    //     println!("write worked");
+    // }
+
+    // 内核中页表的存储方式
+    use x86_64::registers::control::Cr3;
+    let (level_4_page_table, _) = Cr3::read();
+    println!(
+        "Level 4 page table at: {:?}",
+        level_4_page_table.start_address()
+    );
+
     #[cfg(test)]
     test_main();
 
