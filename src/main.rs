@@ -73,27 +73,11 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     // print_l43_page_table(boot_info);
 
     // 测试地址翻译功能
-    use rust_os::memory::translate_addr;
-    use x86_64::VirtAddr;
+    // 使用 OffsetPageTable
+    // test_address_translate(boot_info);
 
-    let phys_mem_offset = VirtAddr::new(boot_info.physical_memory_offset);
-
-    let addresses = [
-        // the identity-mapped vga buffer page
-        0xb8000,
-        // some code page
-        0x201008,
-        // some stack page
-        0x0100_0020_1a10,
-        // virtual address mapped to physical address 0
-        boot_info.physical_memory_offset,
-    ];
-
-    for &address in &addresses {
-        let virt = VirtAddr::new(address);
-        let phys = unsafe { translate_addr(virt, phys_mem_offset) };
-        println!("{:?} -> {:?}", virt, phys);
-    }
+    // 创建一个新的映射
+    create_new_map(boot_info);
 
     #[cfg(test)]
     test_main();
@@ -143,4 +127,53 @@ fn print_l43_page_table(boot_info: &'static BootInfo) {
             println!("{} L3 entries", count);
         }
     }
+}
+
+#[allow(warnings)]
+fn test_address_translate(boot_info: &BootInfo) {
+    use rust_os::memory;
+    use x86_64::{structures::paging::Translate, VirtAddr};
+
+    let phys_mem_offset = VirtAddr::new(boot_info.physical_memory_offset);
+    let mapper = unsafe { memory::init(phys_mem_offset) };
+
+    let addresses = [
+        // the identity-mapped vga buffer page
+        0xb8000,
+        // some code page
+        0x201008,
+        // some stack page
+        0x0100_0020_1a10,
+        // virtual address mapped to physical address 0
+        boot_info.physical_memory_offset,
+    ];
+
+    for &address in &addresses {
+        let virt = VirtAddr::new(address);
+        let phys = mapper.translate_addr(virt);
+        println!("{:?} -> {:?}", virt, phys);
+    }
+}
+
+fn create_new_map(boot_info: &'static BootInfo) {
+    use rust_os::memory;
+    use x86_64::{structures::paging::Page, VirtAddr};
+    // 新的导入
+
+    let phys_mem_offset = VirtAddr::new(boot_info.physical_memory_offset);
+    let mut mapper = unsafe { memory::init(phys_mem_offset) };
+    // let mut frame_allocator = memory::EmptyFrameAllocator;
+    // 创建丢失的页表
+    let mut frame_allocator =
+        unsafe { memory::BootInfoFrameAllocator::init(&boot_info.memory_map) };
+
+    // 映射未使用的页
+    // let page = Page::containing_address(VirtAddr::new(0));
+    // 映射一个还不存在一级表的页面
+    let page: Page = Page::containing_address(VirtAddr::new(0xdeadbeaf000));
+    memory::create_example_mapping(page, &mut mapper, &mut frame_allocator);
+
+    // 通过新的映射将字符串 `New!`  写到屏幕上。
+    let page_ptr: *mut u64 = page.start_address().as_mut_ptr();
+    unsafe { page_ptr.offset(400).write_volatile(0x_f021_f077_f065_f04e) };
 }
