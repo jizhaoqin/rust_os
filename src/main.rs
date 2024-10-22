@@ -4,11 +4,13 @@
 #![test_runner(rust_os::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
+use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
 use rust_os::println;
 
-#[no_mangle]
-pub extern "C" fn _start() -> ! {
+entry_point!(kernel_main);
+
+fn kernel_main(boot_info: &'static BootInfo) -> ! {
     // 链接器会寻找一个默认名为 `_start` 的函数，所以这个函数就是入口点
     println!("Hello World{}", "!");
 
@@ -58,17 +60,46 @@ pub extern "C" fn _start() -> ! {
     // }
 
     // 内核中页表的存储方式
-    use x86_64::registers::control::Cr3;
-    let (level_4_page_table, _) = Cr3::read();
-    println!(
-        "Level 4 page table at: {:?}",
-        level_4_page_table.start_address()
-    );
+    // use x86_64::registers::control::Cr3;
+    // let (level_4_page_table, _) = Cr3::read();
+    // println!(
+    //     "Level 4 page table at: {:?}",
+    //     level_4_page_table.start_address()
+    // );
+
+    use rust_os::memory::active_level_4_table;
+    use x86_64::structures::paging::PageTable;
+    use x86_64::VirtAddr;
+
+    let mut count = 0;
+    // 看看4, 3级页表,
+    let phys_mem_offset = VirtAddr::new(boot_info.physical_memory_offset);
+    let l4_table = unsafe { active_level_4_table(phys_mem_offset) };
+
+    for (i, entry) in l4_table.iter().enumerate() {
+        if !entry.is_unused() {
+            println!("L4 Entry {}: {:?}", i, entry);
+
+            // get the physical address from the entry and convert it
+            let phys = entry.frame().unwrap().start_address();
+            let virt = phys.as_u64() + boot_info.physical_memory_offset;
+            let ptr = VirtAddr::new(virt).as_mut_ptr();
+            let l3_table: &PageTable = unsafe { &*ptr };
+
+            // print non-empty entries of the level 3 table
+            for (i, entry) in l3_table.iter().enumerate() {
+                if !entry.is_unused() {
+                    println!("  L3 Entry {}: {:?}", i, entry);
+                    count += 1;
+                }
+            }
+        }
+    }
 
     #[cfg(test)]
     test_main();
 
-    println!("It did not crash!");
+    println!("It did not crash! {}", count);
     rust_os::hlt_loop();
 }
 
