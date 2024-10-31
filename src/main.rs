@@ -6,7 +6,7 @@
 
 use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
-use rust_os::{print, println};
+use rust_os::{memory, print, println};
 
 entry_point!(kernel_main);
 
@@ -120,16 +120,16 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     // }
 
     // 创建映射
-    use rust_os::memory;
+    use rust_os::memory::BootInfoFrameAllocator;
     use x86_64::{structures::paging::Page, VirtAddr};
 
     let phys_mem_offset = VirtAddr::new(boot_info.physical_memory_offset);
     let mut mapper = unsafe { memory::init(phys_mem_offset) };
-    let mut frame_allocator = memory::EmptyFrameAllocator;
+    let mut frame_allocator = unsafe { BootInfoFrameAllocator::init(&boot_info.memory_map) };
 
     // 映射未使用的页
     // let page = Page::containing_address(VirtAddr::new(0));
-    let page = Page::containing_address(VirtAddr::new(0xdeadbeaf000));
+    let page = Page::containing_address(VirtAddr::new(0xdebdbeaf000));
     memory::create_example_mapping(page, &mut mapper, &mut frame_allocator);
 
     // 通过新的映射将字符串 `New!`  写到屏幕上。
