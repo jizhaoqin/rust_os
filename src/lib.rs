@@ -6,11 +6,15 @@
 #![feature(abi_x86_interrupt)]
 
 use core::panic::PanicInfo;
+
+pub mod allocator;
 pub mod gdt;
 pub mod interrupts;
 pub mod memory;
 pub mod serial;
 pub mod vga_buffer;
+
+extern crate alloc;
 
 #[cfg(test)]
 use bootloader::{entry_point, BootInfo};

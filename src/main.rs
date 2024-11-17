@@ -4,6 +4,8 @@
 #![test_runner(rust_os::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
+extern crate alloc;
+
 use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
 use rust_os::{print, println};
@@ -77,7 +79,49 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     // test_address_translate(boot_info);
 
     // 创建一个新的映射
-    create_new_map(boot_info);
+    // create_new_map(boot_info);
+
+    use alloc::{boxed::Box, rc::Rc, vec, vec::Vec};
+    use rust_os::allocator; // new import
+    use rust_os::memory::{self, BootInfoFrameAllocator};
+    use x86_64::VirtAddr;
+
+    let phys_mem_offset = VirtAddr::new(boot_info.physical_memory_offset);
+    let mut mapper = unsafe { memory::init(phys_mem_offset) };
+    let mut frame_allocator = unsafe { BootInfoFrameAllocator::init(&boot_info.memory_map) };
+
+    // 初始化堆
+    allocator::init_heap(&mut mapper, &mut frame_allocator).expect("heap initialization failed");
+
+    // allocate a number on the heap
+    let heap_value = Box::new(41);
+    println!("heap_value at {:p}", heap_value);
+
+    // create a dynamically sized vector
+    let mut vec = Vec::new();
+    for i in 0..500 {
+        vec.push(i);
+    }
+    println!(
+        "vec at {:p} with capacity {}",
+        // &vec,
+        &vec[..],
+        // vec.as_slice(),
+        vec.capacity()
+    );
+
+    // create a reference counted vector -> will be freed when count reaches 0
+    let reference_counted = Rc::new(vec![1, 2, 3]);
+    let cloned_reference = reference_counted.clone();
+    println!(
+        "current reference count is {}",
+        Rc::strong_count(&cloned_reference)
+    );
+    core::mem::drop(reference_counted);
+    println!(
+        "reference count is {} now",
+        Rc::strong_count(&cloned_reference)
+    );
 
     #[cfg(test)]
     test_main();
@@ -99,7 +143,7 @@ fn panic(info: &PanicInfo) -> ! {
     rust_os::test_panic_handler(info);
 }
 
-#[allow(warnings)]
+#[allow(dead_code)]
 fn print_l43_page_table(boot_info: &'static BootInfo) {
     use rust_os::memory::active_level_4_table;
     use x86_64::structures::paging::PageTable;
@@ -155,6 +199,7 @@ fn test_address_translate(boot_info: &BootInfo) {
     }
 }
 
+#[allow(dead_code)]
 fn create_new_map(boot_info: &'static BootInfo) {
     use rust_os::memory;
     use x86_64::{structures::paging::Page, VirtAddr};
