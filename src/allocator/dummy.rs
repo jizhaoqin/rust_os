@@ -1,8 +1,13 @@
+use super::Locked;
 use alloc::alloc::{GlobalAlloc, Layout};
 
 pub struct Dummy;
 
-unsafe impl GlobalAlloc for Dummy {
+impl Dummy {
+    pub unsafe fn init(&mut self, _heap_start: usize, _heap_size: usize) {}
+}
+
+unsafe impl GlobalAlloc for Locked<Dummy> {
     unsafe fn alloc(&self, _layout: Layout) -> *mut u8 {
         core::ptr::null_mut()
     }
