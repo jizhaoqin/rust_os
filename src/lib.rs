@@ -70,8 +70,20 @@ pub fn test_panic_handler(info: &PanicInfo) -> ! {
 
 // Entry point for `cargo test`
 #[cfg(test)]
-fn test_kernel_main(_boot_info: &'static BootInfo) -> ! {
+fn test_kernel_main(boot_info: &'static BootInfo) -> ! {
+    // 全局描述符表, 中断描述符表, 中断控制器初始化
     init();
+
+    // 动态内存(堆内存)分配器初始化
+    use memory::BootInfoFrameAllocator;
+    use x86_64::VirtAddr;
+
+    let phys_mem_offset = VirtAddr::new(boot_info.physical_memory_offset);
+    let mut mapper = unsafe { memory::init(phys_mem_offset) };
+    let mut frame_allocator = unsafe { BootInfoFrameAllocator::init(&boot_info.memory_map) };
+
+    allocator::init_heap(&mut mapper, &mut frame_allocator).expect("heap initialization failed");
+
     test_main();
     hlt_loop();
 }
