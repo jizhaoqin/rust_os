@@ -4,12 +4,15 @@
 #![test_runner(rust_os::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
+use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
 use rust_os::println;
 use rust_os::vga_buffer::WRITER;
 
-#[no_mangle] // don't mangle the name of this function
-pub extern "C" fn _start() -> ! {
+entry_point!(main);
+
+// #[no_mangle] // don't mangle the name of this function
+fn main(_boot_info: &'static BootInfo) -> ! {
     test_main();
 
     loop {}
