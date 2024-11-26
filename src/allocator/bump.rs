@@ -20,6 +20,10 @@ impl BumpAllocator {
         }
     }
 
+    pub fn get_allocations(&self) -> usize {
+        self.allocations
+    }
+
     /// Initialize the bump allocator with the given heap bounds.
     ///
     /// this method is unsafe because the caller must ensure that the given
