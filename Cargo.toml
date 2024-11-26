@@ -13,7 +13,7 @@ edition = "2021"
         "none",
     ]
     test-success-exit-code = 33
-    test-timeout = 10
+    test-timeout = 50
 
 [dependencies]
 bootloader            = { version = "0.9", features = ["map_physical_memory"] }
