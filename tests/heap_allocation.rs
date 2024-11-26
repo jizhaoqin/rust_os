@@ -62,8 +62,8 @@ fn many_boxes() {
     let plus = 1000;
     for i in 0..(HEAP_SIZE + plus) {
         let x = Box::new(i);
-
         assert_eq!(*x, i);
+
         assert_eq!(ALLOCATOR.lock().get_allocations(), 1);
     }
 }
@@ -74,6 +74,7 @@ fn many_boxes_long_lived() {
     for i in 0..(HEAP_SIZE / 8 - 8) {
         let x = Box::new(i);
         assert_eq!(*x, i);
+
         assert_eq!(ALLOCATOR.lock().get_allocations(), 2);
     }
     assert_eq!(*long_lived, 1);
