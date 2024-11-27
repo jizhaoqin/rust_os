@@ -3,6 +3,7 @@
 #![feature(custom_test_frameworks)]
 #![test_runner(rust_os::test_runner)]
 #![reexport_test_harness_main = "test_main"]
+#![allow(unused_imports)]
 
 extern crate alloc;
 
@@ -83,16 +84,21 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     // test_create_new_map(boot_info);
 
     // try execute async tasks
-    use rust_os::task::{simple_executor::SimpleExecutor, Task};
+    // async print_key_presses
+    use rust_os::task::executor::Executor;
+    use rust_os::task::{keyboard, Task};
 
-    let mut executor = SimpleExecutor::new();
+    let mut executor = Executor::new();
     executor.spawn(Task::new(example_task()));
+    executor.spawn(Task::new(keyboard::print_key_presses()));
     executor.run();
 
+    #[allow(unreachable_code)]
     #[cfg(test)]
     test_main();
 
-    print!("It did not crash");
+    // print!("It did not crash");
+    #[allow(unreachable_code)]
     rust_os::hlt_loop();
 }
 
