@@ -16,7 +16,8 @@ entry_point!(kernel_main);
 fn kernel_main(boot_info: &'static BootInfo) -> ! {
     println!("Hello World{}", "!");
 
-    rust_os::init();
+    // 内核初始化
+    rust_os::init(boot_info);
 
     // 调试中断
     // x86_64::instructions::interrupts::int3();
@@ -82,16 +83,6 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     // create_new_map(boot_info);
 
     use alloc::{boxed::Box, rc::Rc, vec, vec::Vec};
-    use rust_os::allocator; // new import
-    use rust_os::memory::{self, BootInfoFrameAllocator};
-    use x86_64::VirtAddr;
-
-    let phys_mem_offset = VirtAddr::new(boot_info.physical_memory_offset);
-    let mut mapper = unsafe { memory::init(phys_mem_offset) };
-    let mut frame_allocator = unsafe { BootInfoFrameAllocator::init(&boot_info.memory_map) };
-
-    // 初始化堆
-    allocator::init_heap(&mut mapper, &mut frame_allocator).expect("heap initialization failed");
 
     // allocate a number on the heap
     let heap_value = Box::new(41);
@@ -173,7 +164,7 @@ fn print_l43_page_table(boot_info: &'static BootInfo) {
     }
 }
 
-#[allow(warnings)]
+#[allow(dead_code)]
 fn test_address_translate(boot_info: &BootInfo) {
     use rust_os::memory;
     use x86_64::{structures::paging::Translate, VirtAddr};
