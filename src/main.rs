@@ -80,8 +80,46 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     // test_address_translate(boot_info);
 
     // 创建一个新的映射
-    // create_new_map(boot_info);
+    // test_create_new_map(boot_info);
 
+    // try execute async tasks
+    use rust_os::task::{simple_executor::SimpleExecutor, Task};
+
+    let mut executor = SimpleExecutor::new();
+    executor.spawn(Task::new(example_task()));
+    executor.run();
+
+    #[cfg(test)]
+    test_main();
+
+    print!("It did not crash");
+    rust_os::hlt_loop();
+}
+
+#[cfg(not(test))]
+#[panic_handler]
+fn panic(info: &PanicInfo) -> ! {
+    println!("{}", info);
+    rust_os::hlt_loop();
+}
+
+#[cfg(test)]
+#[panic_handler]
+fn panic(info: &PanicInfo) -> ! {
+    rust_os::test_panic_handler(info);
+}
+
+async fn async_number() -> u32 {
+    42
+}
+
+async fn example_task() {
+    let number = async_number().await;
+    println!("async number: {}", number);
+}
+
+#[test_case]
+fn test_heap_allocation() {
     use alloc::{boxed::Box, rc::Rc, vec, vec::Vec};
 
     // allocate a number on the heap
@@ -113,25 +151,6 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
         "reference count is {} now",
         Rc::strong_count(&cloned_reference)
     );
-
-    #[cfg(test)]
-    test_main();
-
-    print!("It did not crash");
-    rust_os::hlt_loop();
-}
-
-#[cfg(not(test))]
-#[panic_handler]
-fn panic(info: &PanicInfo) -> ! {
-    println!("{}", info);
-    rust_os::hlt_loop();
-}
-
-#[cfg(test)]
-#[panic_handler]
-fn panic(info: &PanicInfo) -> ! {
-    rust_os::test_panic_handler(info);
 }
 
 #[allow(dead_code)]
@@ -191,7 +210,7 @@ fn test_address_translate(boot_info: &BootInfo) {
 }
 
 #[allow(dead_code)]
-fn create_new_map(boot_info: &'static BootInfo) {
+fn test_create_new_map(boot_info: &'static BootInfo) {
     use rust_os::memory;
     use x86_64::{structures::paging::Page, VirtAddr};
     // 新的导入
