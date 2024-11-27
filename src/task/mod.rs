@@ -1,3 +1,4 @@
+pub mod keyboard;
 pub mod simple_executor;
 
 use alloc::boxed::Box;
