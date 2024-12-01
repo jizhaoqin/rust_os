@@ -29,7 +29,7 @@ fn translate_addr_inner(addr: VirtAddr, physical_memory_offset: VirtAddr) -> Opt
     use x86_64::registers::control::Cr3;
     use x86_64::structures::paging::page_table::FrameError;
 
-    // 从CR3寄存器中读取活动的4级 frame
+    // 从CR3寄存器中读取活动的4级页表物理帧
     let (level_4_table_frame, _) = Cr3::read();
 
     let table_indexes = [
@@ -40,14 +40,12 @@ fn translate_addr_inner(addr: VirtAddr, physical_memory_offset: VirtAddr) -> Opt
     ];
     let mut frame = level_4_table_frame;
 
-    // 遍历多级页表
+    // 遍历4级页表
     for &index in &table_indexes {
-        // 将该框架转换为页表参考
         let virt = physical_memory_offset + frame.start_address().as_u64();
         let table_ptr: *const PageTable = virt.as_ptr();
         let table = unsafe { &*table_ptr };
 
-        // 读取页表条目并更新`frame`
         let entry = &table[index];
         frame = match entry.frame() {
             Ok(frame) => frame,
