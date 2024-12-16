@@ -1,13 +1,16 @@
-pub struct Dummy;
 pub mod bump;
+pub mod linked_list;
 
 use alloc::alloc::{GlobalAlloc, Layout};
-use bump::BumpAllocator;
+// use bump::BumpAllocator;
 use core::ptr::null_mut;
+use linked_list::LinkedListAllocator;
 // use linked_list_allocator::LockedHeap;
 use x86_64::structures::paging::mapper::MapToError;
 use x86_64::structures::paging::{FrameAllocator, Mapper, Page, PageTableFlags, Size4KiB};
 use x86_64::VirtAddr;
+
+pub struct Dummy;
 
 unsafe impl GlobalAlloc for Dummy {
     unsafe fn alloc(&self, _layout: Layout) -> *mut u8 {
@@ -23,7 +26,8 @@ unsafe impl GlobalAlloc for Dummy {
 // static ALLOCATOR: Dummy = Dummy;
 
 #[global_allocator]
-static ALLOCATOR: Locked<BumpAllocator> = Locked::new(BumpAllocator::new());
+static ALLOCATOR: Locked<LinkedListAllocator> = Locked::new(LinkedListAllocator::new());
+// static ALLOCATOR: Locked<BumpAllocator> = Locked::new(BumpAllocator::new());
 // static ALLOCATOR: LockedHeap = LockedHeap::empty();
 
 pub const HEAP_START: usize = 0x_4444_4444_0000;
