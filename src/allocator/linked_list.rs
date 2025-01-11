@@ -1,5 +1,5 @@
 use super::{align_up, Locked};
-use alloc::alloc::{GlobalAlloc, Layout};
+use core::alloc::{GlobalAlloc, Layout};
 use core::{mem, ptr};
 
 struct ListNode {
@@ -25,6 +25,12 @@ pub struct LinkedListAllocator {
     head: ListNode,
 }
 
+impl Default for LinkedListAllocator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl LinkedListAllocator {
     pub const fn new() -> Self {
         Self {
@@ -32,6 +38,7 @@ impl LinkedListAllocator {
         }
     }
 
+    /// # Safety
     pub unsafe fn init(&mut self, heap_start: usize, heap_size: usize) {
         self.add_free_region(heap_start, heap_size);
     }
@@ -51,7 +58,7 @@ impl LinkedListAllocator {
         let mut current = &mut self.head;
 
         while let Some(ref mut region) = current.next {
-            if let Ok(alloc_start) = Self::alloc_from_region(&region, size, align) {
+            if let Ok(alloc_start) = Self::alloc_from_region(region, size, align) {
                 let next = region.next.take();
                 let ret = Some((current.next.take().unwrap(), alloc_start));
                 current.next = next;

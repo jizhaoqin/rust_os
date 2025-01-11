@@ -1,8 +1,7 @@
 use super::Locked;
-use alloc::alloc::{GlobalAlloc, Layout};
-use core::mem;
-use core::ptr;
+use core::alloc::{GlobalAlloc, Layout};
 use core::ptr::NonNull;
+use core::{mem, ptr};
 
 struct ListNode {
     next: Option<&'static mut ListNode>,
@@ -15,6 +14,12 @@ pub struct FixedSizeBlockAllocator {
     fallback_allocator: linked_list_allocator::Heap,
 }
 
+impl Default for FixedSizeBlockAllocator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl FixedSizeBlockAllocator {
     pub const fn new() -> Self {
         const EMPTY: Option<&'static mut ListNode> = None;
@@ -24,6 +29,7 @@ impl FixedSizeBlockAllocator {
         }
     }
 
+    /// # Safety
     pub unsafe fn init(&mut self, heap_start: usize, heap_size: usize) {
         self.fallback_allocator.init(heap_start, heap_size);
     }

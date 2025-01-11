@@ -1,7 +1,8 @@
 use super::{align_up, Locked};
-use alloc::alloc::{GlobalAlloc, Layout};
+use core::alloc::{GlobalAlloc, Layout};
 use core::ptr;
 
+#[derive(Default)]
 pub struct BumpAllocator {
     heap_start: usize,
     heap_end: usize,
@@ -19,6 +20,7 @@ impl BumpAllocator {
         }
     }
 
+    /// # Safety
     pub unsafe fn init(&mut self, heap_start: usize, heap_size: usize) {
         self.heap_start = heap_start;
         self.heap_end = heap_start + heap_size;
