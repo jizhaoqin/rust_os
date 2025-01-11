@@ -1,5 +1,5 @@
 use super::Locked;
-use alloc::alloc::{GlobalAlloc, Layout};
+use core::alloc::{GlobalAlloc, Layout};
 use core::{mem, ptr};
 
 struct ListNode {
@@ -28,7 +28,7 @@ impl FixedSizeBlockAllocator {
     }
 
     /// initialize the allocator with the given heap bounds.
-    ///
+    /// # Safety
     /// this function is unsafe because the caller must guarantee that the given
     /// heap bounds are valid and that the heap is unused. This method must called
     /// only once.

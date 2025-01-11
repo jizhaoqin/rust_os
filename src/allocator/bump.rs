@@ -1,5 +1,5 @@
 use super::{align_up, Locked};
-use alloc::alloc::{GlobalAlloc, Layout};
+use core::alloc::{GlobalAlloc, Layout};
 use core::ptr;
 
 pub struct BumpAllocator {
@@ -25,7 +25,7 @@ impl BumpAllocator {
     }
 
     /// Initialize the bump allocator with the given heap bounds.
-    ///
+    /// # Safety
     /// this method is unsafe because the caller must ensure that the given
     /// memory range is unused. Also, this method must be called only once.
     pub unsafe fn init(&mut self, heap_start: usize, heap_size: usize) {

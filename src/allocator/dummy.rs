@@ -1,9 +1,11 @@
+use core::alloc::{GlobalAlloc, Layout};
+
 use super::Locked;
-use alloc::alloc::{GlobalAlloc, Layout};
 
 pub struct Dummy;
 
 impl Dummy {
+    /// # Safety
     pub unsafe fn init(&mut self, _heap_start: usize, _heap_size: usize) {}
 }
 

@@ -1,5 +1,5 @@
 use super::{align_up, Locked};
-use alloc::alloc::{GlobalAlloc, Layout};
+use core::alloc::{GlobalAlloc, Layout};
 use core::{mem, ptr};
 
 struct ListNode {
@@ -34,7 +34,7 @@ impl LinkedListAllocator {
     }
 
     /// initialize the allocator with the given heap bounds.
-    ///
+    /// # Safety
     /// This function is unsafe because the caller must guarantee that
     /// the given heap bounds are valid and that the heap is unused.
     /// This method must be called only once.
