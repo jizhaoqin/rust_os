@@ -6,8 +6,9 @@ use x86_64::{
     PhysAddr, VirtAddr,
 };
 
-/// 初始化一个新的OffsetPageTable。
+/// 初始化一个新的OffsetPageTables
 ///
+/// ## Safety
 /// 这个函数是不安全的，因为调用者必须保证完整的物理内存在
 /// 传递的`physical_memory_offset`处被映射到虚拟内存。另
 /// 外，这个函数必须只被调用一次，以避免别名"&mut "引用（这是未定义的行为）。
@@ -64,7 +65,7 @@ pub struct BootInfoFrameAllocator {
 
 impl BootInfoFrameAllocator {
     /// 从传递的内存 map 中创建一个FrameAllocator。
-    ///
+    /// ## Safety
     /// 这个函数是不安全的，因为调用者必须保证传递的内存 map 是有效的。
     /// 主要的要求是，所有在其中被标记为 "可用 "的帧都是真正未使用的。
     pub unsafe fn init(memory_map: &'static MemoryMap) -> Self {
