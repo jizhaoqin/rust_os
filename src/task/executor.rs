@@ -18,12 +18,25 @@ impl task::Wake for TaskWaker {
     }
 }
 
+impl Default for TaskWaker {
+    fn default() -> Self {
+        Self {
+            task_id: TaskId(0),
+            task_queue: Arc::new(ArrayQueue::new(1)),
+        }
+    }
+}
+
 impl TaskWaker {
-    fn new(task_id: TaskId, task_queue: Arc<ArrayQueue<TaskId>>) -> Waker {
-        Waker::from(Arc::new(TaskWaker {
+    fn new(task_id: TaskId, task_queue: Arc<ArrayQueue<TaskId>>) -> Self {
+        TaskWaker {
             task_id,
             task_queue,
-        }))
+        }
+    }
+
+    fn new_waker(task_id: TaskId, task_queue: Arc<ArrayQueue<TaskId>>) -> Waker {
+        Waker::from(Arc::new(Self::new(task_id, task_queue)))
     }
 
     fn wake_task(&self) {
@@ -35,6 +48,12 @@ pub struct Executor {
     tasks: BTreeMap<TaskId, Task>,
     task_queue: Arc<ArrayQueue<TaskId>>,
     waker_cache: BTreeMap<TaskId, Waker>,
+}
+
+impl Default for Executor {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Executor {
@@ -69,7 +88,7 @@ impl Executor {
             };
             let waker = waker_cache
                 .entry(task_id)
-                .or_insert_with(|| TaskWaker::new(task_id, task_queue.clone()));
+                .or_insert_with(|| TaskWaker::new_waker(task_id, task_queue.clone()));
             let mut context = Context::from_waker(waker);
 
             match task.poll(&mut context) {
