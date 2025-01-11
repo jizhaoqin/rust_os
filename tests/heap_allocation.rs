@@ -20,7 +20,7 @@ fn main(boot_info: &'static BootInfo) -> ! {
     rust_os::init(boot_info);
 
     test_main();
-    loop {}
+    rust_os::hlt_loop();
 }
 
 #[panic_handler]

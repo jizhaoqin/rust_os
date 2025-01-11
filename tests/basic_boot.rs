@@ -15,7 +15,7 @@ entry_point!(main);
 fn main(_boot_info: &'static BootInfo) -> ! {
     test_main();
 
-    loop {}
+    rust_os::hlt_loop();
 }
 
 #[test_case]
