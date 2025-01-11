@@ -4,11 +4,13 @@ use x86_64::structures::paging::{
 };
 use x86_64::{PhysAddr, VirtAddr};
 
+/// # Safety
 pub unsafe fn init(physical_memory_offset: VirtAddr) -> OffsetPageTable<'static> {
     let level_4_table = active_level_4_table(physical_memory_offset);
     OffsetPageTable::new(level_4_table, physical_memory_offset)
 }
 
+/// # Safety
 pub unsafe fn active_level_4_table(physical_memory_offset: VirtAddr) -> &'static mut PageTable {
     use x86_64::registers::control::Cr3;
 
@@ -21,6 +23,7 @@ pub unsafe fn active_level_4_table(physical_memory_offset: VirtAddr) -> &'static
     &mut *page_table_ptr // unsafe
 }
 
+/// # Safety
 pub unsafe fn translate_addr(addr: VirtAddr, physical_memory_offset: VirtAddr) -> Option<PhysAddr> {
     translate_addr_inner(addr, physical_memory_offset)
 }
@@ -92,6 +95,7 @@ pub struct BootInfoFrameAllocator {
 
 impl BootInfoFrameAllocator {
     /// 从传递的内存 map 中创建一个FrameAllocator
+    /// # Safety
     /// 这个函数是不安全的, 因为调用者必须保证传递的内存 map 是有效的, 主要的要求是，所有在其中被标记为 "可用 "的帧都是真正未使用的
     pub unsafe fn init(memory_map: &'static MemoryMap) -> Self {
         BootInfoFrameAllocator {

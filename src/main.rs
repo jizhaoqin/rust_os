@@ -179,7 +179,7 @@ fn print_l43_page_table(boot_info: &'static BootInfo) {
             let l3_table: &PageTable = unsafe { &*ptr };
 
             let mut count: usize = 0;
-            for (_i, entry) in l3_table.iter().enumerate() {
+            for entry in l3_table.iter() {
                 if !entry.is_unused() {
                     count += 1;
                 }
