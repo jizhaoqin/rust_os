@@ -172,16 +172,17 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     //     "reference count is {} now",
     //     Rc::strong_count(&cloned_reference)
     // );
-    use rust_os::task::simple_executor::SimpleExecutor;
+    // use rust_os::task::simple_executor::SimpleExecutor;
+    #[cfg(test)]
+    test_main();
+
+    use rust_os::task::executor::Executor;
     use rust_os::task::Task;
 
-    let mut executor = SimpleExecutor::new();
+    let mut executor = Executor::new();
     executor.spawn(Task::new(Box::pin(example_task())));
     executor.spawn(Task::new(Box::pin(keyboard::print_key_presses())));
     executor.run();
-
-    #[cfg(test)]
-    test_main();
 
     print!("It did not crash!");
     rust_os::hlt_loop();
