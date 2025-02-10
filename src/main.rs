@@ -8,7 +8,7 @@ extern crate alloc;
 
 use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
-use rust_os::{print, println};
+use rust_os::{print, println, task::keyboard};
 
 entry_point!(kernel_main);
 
@@ -177,6 +177,7 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
 
     let mut executor = SimpleExecutor::new();
     executor.spawn(Task::new(Box::pin(example_task())));
+    executor.spawn(Task::new(Box::pin(keyboard::print_key_presses())));
     executor.run();
 
     #[cfg(test)]
