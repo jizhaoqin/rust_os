@@ -80,6 +80,7 @@ impl Executor {
             task_queue,
             waker_cache,
         } = self;
+        // crate::println!("{:?}", tasks.keys());
 
         while let Some(task_id) = task_queue.pop() {
             let task = match tasks.get_mut(&task_id) {

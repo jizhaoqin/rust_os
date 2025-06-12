@@ -3,6 +3,7 @@ pub mod keyboard;
 pub mod simple_executor;
 
 use alloc::boxed::Box;
+use core::fmt::Debug;
 use core::sync::atomic::{AtomicU64, Ordering};
 use core::task::{Context, Poll};
 use core::{future::Future, pin::Pin};
@@ -31,6 +32,6 @@ struct TaskId(u64);
 impl TaskId {
     fn new() -> Self {
         static NEXT_ID: AtomicU64 = AtomicU64::new(0);
-        TaskId(NEXT_ID.fetch_add(1, Ordering::Relaxed))
+        TaskId(NEXT_ID.fetch_add(10, Ordering::Relaxed))
     }
 }
