@@ -69,6 +69,9 @@ extern "x86-interrupt" fn page_fault_handler(
     hlt_loop();
 }
 
+/// IDT初始化加载
+///
+/// - 定义好IDT后需要将其地址加载CPU中保存, 这样CPU遇到中断就能直接查表了
 pub fn init_idt() {
     IDT.load();
 }
@@ -94,3 +97,5 @@ impl InterruptIndex {
 fn test_breakpoint_exception() {
     x86_64::instructions::interrupts::int3();
 }
+
+// random code

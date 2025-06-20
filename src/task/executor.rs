@@ -9,6 +9,9 @@ struct TaskWaker {
     task_queue: Arc<ArrayQueue<TaskId>>,
 }
 
+/// 因爲 Future::poll 方法接受一個 Context 實例作爲參數，這個實例只能從 Waker 類型構建
+///
+/// - 实现了这个trait, From<TaskWaker> -> Waker -> Context会自动实现
 impl alloc::task::Wake for TaskWaker {
     fn wake(self: Arc<Self>) {
         self.wake_task();
@@ -36,7 +39,9 @@ impl TaskWaker {
         }
     }
 
+    /// 从TaskWaker创建一个Waker实例
     fn new_waker(task_id: TaskId, task_queue: Arc<ArrayQueue<TaskId>>) -> Waker {
+        // 這個 from 方法負責構建一個 RawWakerVTable 和一個 RawWaker 實例
         Waker::from(Arc::new(Self::new(task_id, task_queue)))
     }
 
@@ -75,6 +80,7 @@ impl Executor {
         if self.tasks.insert(task.id, task).is_some() {
             panic!("task with same ID already in tasks");
         }
+        // 立即执行首次唤醒
         self.task_queue.push(task_id).expect("queue full");
     }
 
@@ -141,6 +147,8 @@ impl Executor {
         use x86_64::instructions::interrupts::{self, enable_and_hlt};
 
         interrupts::disable();
+        // 當 task_queue 爲空時執行 [hlt 指令]。這個指令將 CPU 進入睡眠狀態，直到下一個中斷到來
+        // task_queue为空说明不需要轮询, 可以一直等待知道出现新的中断
         if self.task_queue.is_empty() {
             enable_and_hlt();
         } else {
